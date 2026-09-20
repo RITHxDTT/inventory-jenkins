@@ -6,17 +6,16 @@ pipeline {
         DB_HOST = 'host.docker.internal'
         DB_PORT = '5432'
 
+        // Jenkins Credentials
+        DB_CREDS = credentials('inventory-postgres')
+        SECRET_KEY = credentials('django-secret-key')
+
+        // Docker
         DOCKER_IMAGE = 'idkisme/inventory'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Setup') {
             steps {
@@ -34,38 +33,28 @@ pipeline {
 
         stage('Database Migration') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'inventory-postgres',
-                        usernameVariable: 'DB_USER',
-                        passwordVariable: 'DB_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        . .venv/bin/activate
+                sh '''
+                    . .venv/bin/activate
 
-                        python manage.py migrate --noinput
-                    '''
-                }
+                    export DB_USER=$DB_CREDS_USR
+                    export DB_PASSWORD=$DB_CREDS_PSW
+
+                    python manage.py migrate --noinput
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'inventory-postgres',
-                        usernameVariable: 'DB_USER',
-                        passwordVariable: 'DB_PASSWORD'
-                    )
-                ]) {
-                    sh '''
-                        . .venv/bin/activate
+                sh '''
+                    . .venv/bin/activate
 
-                        python manage.py check
-                        pytest
-                    '''
-                }
+                    export DB_USER=$DB_CREDS_USR
+                    export DB_PASSWORD=$DB_CREDS_PSW
+
+                    python manage.py check
+                    pytest
+                '''
             }
         }
 
@@ -90,5 +79,4 @@ pipeline {
             echo "Pipeline failed."
         }
     }
-    // testing. 
 }
