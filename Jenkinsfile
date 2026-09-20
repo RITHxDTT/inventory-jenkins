@@ -6,11 +6,6 @@ pipeline {
         DB_HOST = 'host.docker.internal'
         DB_PORT = '5432'
 
-        // Jenkins Credentials
-        DB_CREDS = credentials('inventory-postgres')
-        SECRET_KEY = credentials('django-secret-key')
-
-        // Docker
         DOCKER_IMAGE = 'idkisme/inventory'
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
@@ -33,28 +28,46 @@ pipeline {
 
         stage('Database Migration') {
             steps {
-                sh '''
-                    . .venv/bin/activate
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'inventory-postgres',
+                        usernameVariable: 'DB_USER',
+                        passwordVariable: 'DB_PASSWORD'
+                    ),
+                    string(
+                        credentialsId: 'django-secret-key',
+                        variable: 'SECRET_KEY'
+                    )
+                ]) {
+                    sh '''
+                        . .venv/bin/activate
 
-                    export DB_USER=$DB_CREDS_USR
-                    export DB_PASSWORD=$DB_CREDS_PSW
-
-                    python manage.py migrate --noinput
-                '''
+                        python manage.py migrate --noinput
+                    '''
+                }
             }
         }
 
         stage('Test') {
             steps {
-                sh '''
-                    . .venv/bin/activate
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'inventory-postgres',
+                        usernameVariable: 'DB_USER',
+                        passwordVariable: 'DB_PASSWORD'
+                    ),
+                    string(
+                        credentialsId: 'django-secret-key',
+                        variable: 'SECRET_KEY'
+                    )
+                ]) {
+                    sh '''
+                        . .venv/bin/activate
 
-                    export DB_USER=$DB_CREDS_USR
-                    export DB_PASSWORD=$DB_CREDS_PSW
-
-                    python manage.py check
-                    pytest
-                '''
+                        python manage.py check
+                        pytest
+                    '''
+                }
             }
         }
 
@@ -62,8 +75,8 @@ pipeline {
             steps {
                 sh '''
                     docker build \
-                      -t ${DOCKER_IMAGE}:${IMAGE_TAG} \
-                      -t ${DOCKER_IMAGE}:latest .
+                        -t ${DOCKER_IMAGE}:${IMAGE_TAG} \
+                        -t ${DOCKER_IMAGE}:latest .
                 '''
             }
         }
