@@ -48,6 +48,28 @@ pipeline {
             }
         }
 
+        stage('Collect Static') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'inventory-postgres',
+                        usernameVariable: 'DB_USER',
+                        passwordVariable: 'DB_PASSWORD'
+                    ),
+                    string(
+                        credentialsId: 'django-secret-key',
+                        variable: 'SECRET_KEY'
+                    )
+                ]) {
+                    sh '''
+                        . .venv/bin/activate
+
+                        python manage.py collectstatic --noinput
+                    '''
+                }
+            }
+        }
+
         stage('Test') {
             steps {
                 withCredentials([
