@@ -1,0 +1,1419 @@
+# Project: Inventory Management System
+
+Build a complete, clean, maintainable, and functional **Inventory Management System** using **Python, Django, PostgreSQL, Django Templates, Bootstrap 5, and Tabler UI**.
+
+The application must be a server-rendered Django web application. Do not use React, Vue, Angular, or another SPA framework.
+
+The system must support authentication, authorization, user management, product management, category management, supplier management, stock management, transaction history, reports, audit logs, search/filtering, and a responsive dashboard.
+
+---
+
+# 1. Technology Stack
+
+Use the following technologies.
+
+## Backend
+
+* Python
+* Django
+* django-filter
+* django-environ
+* Pillow
+
+## Database
+
+* PostgreSQL
+* psycopg
+
+## Authentication
+
+* Django Authentication
+* Django Groups and Permissions
+* django-allauth where appropriate
+
+## Frontend
+
+* Django Templates
+* Bootstrap 5
+* Tabler Dashboard UI
+* Bootstrap Icons
+* Chart.js
+* DataTables
+
+## Testing
+
+* pytest
+* pytest-django
+
+## Production
+
+* WhiteNoise
+* Gunicorn
+
+Use the dependencies defined in `requirements.txt`.
+
+Do not unnecessarily introduce additional frameworks or dependencies.
+
+---
+
+# 2. Project Goal
+
+Create a web-based inventory management system that allows authorized users to:
+
+* Log in and log out
+* Manage their profile
+* Manage users
+* Manage roles and permissions
+* Manage products
+* Manage categories
+* Manage suppliers
+* Perform stock-in operations
+* Perform stock-out operations
+* View inventory transaction history
+* Detect low-stock products
+* Detect out-of-stock products
+* Search and filter inventory
+* View reports
+* View dashboard statistics
+* Track important user actions through audit logs
+
+The application should look like a real modern admin dashboard rather than a basic Django tutorial project.
+
+---
+
+# 3. Project Architecture
+
+Organize the project into reusable Django applications.
+
+A suggested structure is:
+
+inventory_management/
+│
+├── manage.py
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── README.md
+│
+├── config/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+│
+├── accounts/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── tests/
+│
+├── inventory/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   ├── filters.py
+│   ├── services.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── tests/
+│
+├── suppliers/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   ├── urls.py
+│   └── tests/
+│
+├── reports/
+│   ├── views.py
+│   ├── urls.py
+│   └── services.py
+│
+├── audit/
+│   ├── models.py
+│   ├── services.py
+│   ├── admin.py
+│   └── tests/
+│
+├── templates/
+│   ├── base.html
+│   ├── components/
+│   ├── accounts/
+│   ├── inventory/
+│   ├── suppliers/
+│   ├── reports/
+│   └── dashboard/
+│
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+└── media/
+├── products/
+└── profiles/
+
+You may improve this structure if there is a better Django architecture, but keep clear separation of responsibilities.
+
+---
+
+# 4. PostgreSQL Configuration
+
+Use PostgreSQL as the primary database.
+
+Database configuration must come from environment variables.
+
+Create `.env.example` containing values similar to:
+
+DB_NAME=inventory_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+
+SECRET_KEY=change-me
+DEBUG=True
+
+Do NOT hardcode database passwords or Django SECRET_KEY directly in source code.
+
+Use `django-environ` to load environment variables.
+
+Configure PostgreSQL through Django's `DATABASES` setting.
+
+---
+
+# 5. Authentication
+
+Implement secure authentication.
+
+Required features:
+
+* Login
+* Logout
+* Password change
+* Password reset
+* Forgot password flow
+* Protected pages
+* Authentication-required decorators/mixins
+* Django sessions
+* Secure password hashing
+* CSRF protection
+
+Unauthenticated users must not be able to access inventory pages.
+
+Redirect unauthenticated users to the login page.
+
+Use Django authentication wherever possible instead of creating a custom authentication mechanism from scratch.
+
+---
+
+# 6. User Management
+
+Create a user management section.
+
+Admin users should be able to:
+
+* View users
+* Create users
+* Edit users
+* Activate users
+* Deactivate users
+* Search users
+* Filter users
+* Assign roles/groups
+* Assign appropriate permissions
+
+Do not permanently delete users when historical inventory transactions or audit records reference them. Prefer deactivation where appropriate.
+
+User information should include:
+
+* Username
+* First name
+* Last name
+* Email
+* Profile picture
+* Role
+* Active/inactive status
+* Date joined
+* Last login
+
+Create a profile page where the logged-in user can:
+
+* View profile
+* Edit profile
+* Change profile image
+* Change password
+
+---
+
+# 7. Roles and Permissions
+
+Use Django Groups and Permissions.
+
+Create at least these roles:
+
+## Admin
+
+Admin has full system access, including:
+
+* User management
+* Product management
+* Category management
+* Supplier management
+* Stock management
+* Reports
+* Audit logs
+* Dashboard
+
+## Manager
+
+Manager can:
+
+* View dashboard
+* Manage products
+* Manage categories
+* Manage suppliers
+* Manage inventory
+* Perform stock-in
+* Perform stock-out
+* View transactions
+* View reports
+
+Manager should not have full user administration unless explicitly granted.
+
+## Staff
+
+Staff can:
+
+* View products
+* View categories
+* View suppliers
+* Perform permitted inventory operations
+* View permitted transaction history
+
+Staff must not access user administration or sensitive administrative pages.
+
+Protect both views and UI actions based on permissions.
+
+Do not rely only on hiding buttons. Server-side permission checks are required.
+
+---
+
+# 8. Dashboard
+
+Create a modern dashboard.
+
+Display cards for:
+
+* Total products
+* Total categories
+* Total suppliers
+* Total stock units
+* Low-stock products
+* Out-of-stock products
+* Total inventory value
+
+Display recent stock transactions.
+
+Use Chart.js for useful visualizations such as:
+
+* Stock In vs Stock Out
+* Inventory by category
+* Recent inventory movement
+
+Do not create meaningless decorative charts.
+
+Dashboard cards should be clickable where appropriate.
+
+Example:
+
+Clicking "Low Stock" should open the product list filtered to low-stock products.
+
+---
+
+# 9. Product Management
+
+Implement complete CRUD functionality.
+
+Product fields should include:
+
+* ID
+* Name
+* SKU
+* Barcode (optional)
+* Description
+* Category
+* Supplier
+* Cost price
+* Selling price
+* Current quantity
+* Minimum stock level
+* Unit
+* Product image
+* Status
+* Created at
+* Updated at
+
+SKU must be unique.
+
+Validate monetary values so they cannot be negative.
+
+Quantity cannot be negative.
+
+Minimum stock level cannot be negative.
+
+Product status should support values such as:
+
+* Active
+* Inactive
+
+Provide:
+
+* Product list
+* Product details
+* Create product
+* Edit product
+* Delete/archive product
+* Search
+* Filtering
+* Sorting
+* Pagination
+
+Use confirmation dialogs/pages before destructive actions.
+
+Products referenced by historical transactions should preferably be archived/deactivated rather than permanently removed.
+
+---
+
+# 10. Product Stock Status
+
+Determine product stock status automatically.
+
+Rules:
+
+If:
+
+quantity == 0
+
+Status should display:
+
+OUT OF STOCK
+
+If:
+
+quantity > 0 AND quantity <= minimum_stock_level
+
+Status should display:
+
+LOW STOCK
+
+Otherwise:
+
+IN STOCK
+
+Display appropriate Bootstrap/Tabler badges.
+
+Do not manually store this status if it can reliably be derived from current quantity and minimum stock level.
+
+---
+
+# 11. Category Management
+
+Implement category CRUD.
+
+Fields:
+
+* Name
+* Description
+* Status
+* Created at
+* Updated at
+
+Functions:
+
+* List categories
+* Create category
+* View category
+* Edit category
+* Delete/archive category
+* Search categories
+* Pagination
+
+Prevent unsafe deletion when products still depend on a category.
+
+---
+
+# 12. Supplier Management
+
+Implement supplier CRUD.
+
+Supplier fields:
+
+* Supplier name
+* Contact person
+* Phone
+* Email
+* Address
+* Notes
+* Status
+* Created at
+* Updated at
+
+Functions:
+
+* List suppliers
+* Create supplier
+* View supplier
+* Edit supplier
+* Delete/archive supplier
+* Search suppliers
+* Filter suppliers
+* Pagination
+
+Display products associated with a supplier on the supplier details page when useful.
+
+---
+
+# 13. Stock Management
+
+Stock management is a critical part of this project.
+
+Do NOT treat stock changes as simple uncontrolled edits to the product quantity.
+
+Create controlled Stock In and Stock Out operations.
+
+## Stock In
+
+Required fields:
+
+* Product
+* Quantity
+* Supplier where applicable
+* Reference number
+* Date
+* Note
+
+Automatically record:
+
+* User
+* Quantity before
+* Quantity changed
+* Quantity after
+* Timestamp
+
+Example:
+
+Current stock = 20
+
+Stock In = 10
+
+New stock = 30
+
+Transaction:
+
+Type: IN
+Before: 20
+Quantity: 10
+After: 30
+
+---
+
+# 14. Stock Out
+
+Required fields:
+
+* Product
+* Quantity
+* Reason
+* Reference number
+* Date
+* Note
+
+Automatically record:
+
+* User
+* Quantity before
+* Quantity changed
+* Quantity after
+* Timestamp
+
+Example:
+
+Current stock = 30
+
+Stock Out = 5
+
+New stock = 25
+
+IMPORTANT:
+
+Never allow Stock Out quantity to exceed available stock.
+
+Example:
+
+Available stock = 5
+
+User requests Stock Out = 10
+
+Reject the transaction and display a clear validation error.
+
+Stock must never become negative.
+
+---
+
+# 15. Transaction Safety
+
+Stock changes and transaction creation must be atomic.
+
+Use Django database transactions such as:
+
+`transaction.atomic()`
+
+When updating stock, handle concurrency safely.
+
+Where appropriate, use database locking such as:
+
+`select_for_update()`
+
+The following operations must behave as one transaction:
+
+1. Read/lock product
+2. Validate stock
+3. Calculate new quantity
+4. Update product quantity
+5. Create StockTransaction
+6. Commit
+
+If any part fails, the entire operation should roll back.
+
+Do not create a transaction record if the stock update failed.
+
+---
+
+# 16. Stock Transaction Model
+
+Create a StockTransaction model.
+
+Suggested fields:
+
+* id
+* product
+* transaction_type
+* quantity
+* quantity_before
+* quantity_after
+* supplier if applicable
+* reason
+* reference_number
+* note
+* performed_by
+* transaction_date
+* created_at
+
+Transaction type should support:
+
+* IN
+* OUT
+
+Transaction history should be treated as historical/audit information.
+
+Normal users should not freely edit or delete completed stock transactions.
+
+If corrections are needed, prefer a controlled adjustment/reversal approach instead of rewriting history.
+
+---
+
+# 17. Transaction History
+
+Create a transaction history page.
+
+Display:
+
+* Transaction ID
+* Product
+* SKU
+* Transaction type
+* Quantity
+* Quantity before
+* Quantity after
+* User
+* Reference
+* Date
+* Notes
+
+Support:
+
+* Search
+* Product filter
+* Transaction type filter
+* User filter
+* Date range
+* Pagination
+* Sorting
+
+Use badges:
+
+IN → positive/success style
+
+OUT → warning/danger style
+
+---
+
+# 18. Search and Filtering
+
+Provide search/filter capabilities throughout the application.
+
+Product filters:
+
+* Product name
+* SKU
+* Category
+* Supplier
+* Stock status
+* Status
+* Price
+* Created date
+
+Transaction filters:
+
+* Product
+* Transaction type
+* User
+* Date range
+* Reference number
+
+Supplier filters:
+
+* Name
+* Status
+
+User filters:
+
+* Username
+* Email
+* Role
+* Active status
+
+Use `django-filter` where appropriate.
+
+---
+
+# 19. Reports
+
+Create a reports section.
+
+Required reports:
+
+## Current Inventory
+
+Display:
+
+* Product
+* SKU
+* Category
+* Quantity
+* Cost price
+* Selling price
+* Inventory value
+* Stock status
+
+## Low Stock
+
+Show products where:
+
+quantity > 0 AND quantity <= minimum_stock_level
+
+## Out of Stock
+
+Show products where:
+
+quantity == 0
+
+## Stock In Report
+
+Support date range filtering.
+
+## Stock Out Report
+
+Support date range filtering.
+
+## Inventory Movement Report
+
+Show inventory changes over a selected period.
+
+## Inventory Value
+
+Calculate inventory value using:
+
+Inventory Value = Current Quantity × Cost Price
+
+Use Decimal fields and Decimal arithmetic for money.
+
+Do not use floating-point values for currency calculations.
+
+---
+
+# 20. Audit Logging
+
+Create an AuditLog model for important administrative actions.
+
+Record actions such as:
+
+* User created
+* User updated
+* User activated/deactivated
+* Product created
+* Product updated
+* Product archived
+* Category created/updated
+* Supplier created/updated
+* Stock In performed
+* Stock Out performed
+
+Suggested fields:
+
+* User
+* Action
+* Object type
+* Object ID
+* Description
+* Timestamp
+
+Audit logs should not be editable by normal users.
+
+Only users with the proper permission should view audit logs.
+
+---
+
+# 21. UI / UX
+
+The UI must be clean, modern, professional, responsive, and easy to use.
+
+Use:
+
+* Bootstrap 5
+* Tabler
+* Bootstrap Icons
+
+Create a reusable layout.
+
+## Sidebar
+
+Include:
+
+* Dashboard
+* Products
+* Categories
+* Suppliers
+* Stock Management
+* Transactions
+* Reports
+* Users
+* Audit Logs
+* Settings/Profile
+* Logout
+
+Only show menu items the current user has permission to access.
+
+## Top Navigation
+
+Include:
+
+* Page title
+* User profile/avatar
+* Username
+* Role where useful
+* Profile link
+* Logout
+
+## Tables
+
+Use clean responsive tables.
+
+Where useful, provide:
+
+* Search
+* Filters
+* Pagination
+* Sorting
+* Action buttons
+
+## Forms
+
+Forms should have:
+
+* Labels
+* Helpful placeholders
+* Validation errors
+* Required-field indication
+* Consistent spacing
+* Clear Save/Cancel actions
+
+Do not expose raw default Django form rendering if it makes the interface look unfinished.
+
+---
+
+# 22. Responsive Design
+
+The application must work properly on:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile
+
+Sidebar should collapse appropriately on smaller screens.
+
+Tables should remain usable on mobile using responsive containers.
+
+---
+
+# 23. Messages and Notifications
+
+Use Django's messages framework.
+
+Display user-friendly messages for actions such as:
+
+* Product created successfully
+* Product updated successfully
+* Product archived successfully
+* Stock added successfully
+* Stock removed successfully
+* Supplier created successfully
+* User updated successfully
+
+Display errors clearly.
+
+Do not expose Python exceptions, SQL errors, stack traces, or sensitive information to normal users.
+
+---
+
+# 24. Validation
+
+Implement both form-level and business-level validation.
+
+Examples:
+
+* SKU must be unique
+* Email must be valid
+* Quantity must be positive for stock transactions
+* Product quantity cannot become negative
+* Cost price cannot be negative
+* Selling price cannot be negative
+* Minimum stock cannot be negative
+* Stock Out cannot exceed available quantity
+* Required fields cannot be empty
+
+Do not rely only on HTML validation.
+
+Server-side validation is required.
+
+---
+
+# 25. Security
+
+Follow Django security best practices.
+
+Requirements:
+
+* CSRF protection
+* Authentication protection
+* Permission checks
+* Secure password hashing
+* ORM queries rather than raw SQL where possible
+* Environment variables for secrets
+* Proper form validation
+* Prevent unauthorized URL access
+* Avoid exposing sensitive configuration
+* Escape untrusted output through Django templates
+* Safe file upload handling
+* Restrict product/profile image file types and reasonable sizes
+
+Never store plaintext passwords.
+
+Never implement custom password hashing.
+
+---
+
+# 26. Database Design
+
+Create appropriate relationships.
+
+Conceptually:
+
+User
+|
++--- Profile
+|
++--- StockTransaction
+|
++--- AuditLog
+
+Category
+|
++--- Product
+
+Supplier
+|
++--- Product
+|
++--- StockTransaction
+
+Product
+|
++--- Category
++--- Supplier
++--- StockTransaction
+
+Use appropriate:
+
+* ForeignKey
+* OneToOneField
+* indexes
+* unique constraints
+* on_delete behavior
+
+Think carefully about deletion behavior because transaction history must remain reliable.
+
+---
+
+# 27. Django Admin
+
+Configure Django Admin for important models.
+
+Register:
+
+* Products
+* Categories
+* Suppliers
+* Stock Transactions
+* Profiles
+* Audit Logs
+
+Provide useful:
+
+* list_display
+* search_fields
+* list_filter
+
+Do not allow unsafe manual modification of historical stock transactions through Django Admin unless there is a strong reason.
+
+---
+
+# 28. Seed / Demo Data
+
+Provide a Django management command for creating development/demo data.
+
+For example:
+
+`python manage.py seed_data`
+
+It should optionally create:
+
+* Roles/groups
+* Permissions
+* Admin demo account
+* Manager demo account
+* Staff demo account
+* Categories
+* Suppliers
+* Products
+* Sample transactions
+
+Do not run seed data automatically in production.
+
+Document demo credentials in README only for development/demo use.
+
+---
+
+# 29. Initial Role Setup
+
+Create a management command or data migration that initializes:
+
+* Admin
+* Manager
+* Staff
+
+Assign appropriate Django permissions.
+
+Make the setup reproducible rather than requiring the developer to manually configure every permission through Django Admin.
+
+---
+
+# 30. Testing
+
+Use pytest and pytest-django.
+
+Create meaningful tests for at least:
+
+* Authentication protection
+* User permissions
+* Product creation
+* Product update
+* SKU uniqueness
+* Stock In
+* Stock Out
+* Preventing negative stock
+* Preventing Stock Out greater than available stock
+* Transaction creation
+* Transaction rollback
+* Low-stock calculation
+* Out-of-stock calculation
+* Unauthorized access
+* Report calculations
+
+Do not create tests that only verify trivial implementation details.
+
+---
+
+# 31. requirements.txt
+
+Use the existing `requirements.txt`.
+
+It should contain or support the required Python dependencies, including:
+
+* Django
+* psycopg[binary]
+* django-environ
+* Pillow
+* django-filter
+* django-allauth
+* WhiteNoise
+* pytest
+* pytest-django
+* gunicorn
+
+Do not add frontend CDN libraries to `requirements.txt`.
+
+---
+
+# 32. README
+
+Create a detailed `README.md`.
+
+Include:
+
+* Project description
+* Features
+* Technology stack
+* Requirements
+* Python environment setup
+* PostgreSQL setup
+* Environment configuration
+* Dependency installation
+* Migration commands
+* Creating superuser
+* Seed data command
+* Running tests
+* Starting development server
+* Default development URL
+* Project structure
+* Role descriptions
+
+Include setup commands similar to:
+
+python -m venv .venv
+
+macOS/Linux:
+
+source .venv/bin/activate
+
+Install:
+
+pip install -r requirements.txt
+
+Create `.env` from `.env.example`.
+
+Then:
+
+python manage.py makemigrations
+python manage.py migrate
+python manage.py seed_data
+python manage.py runserver
+
+---
+
+# 33. Code Quality
+
+Follow Django best practices.
+
+Requirements:
+
+* Keep views reasonably small
+* Move complicated stock business logic into services
+* Avoid duplicated code
+* Use reusable templates
+* Use template inheritance
+* Use meaningful model and field names
+* Add useful comments only where necessary
+* Use clean URL names
+* Use reverse/reverse_lazy
+* Use Django ORM efficiently
+* Use select_related/prefetch_related where appropriate
+* Avoid N+1 database queries
+* Keep business logic out of templates
+* Use Decimal for monetary values
+
+---
+
+# 34. Important Business Rule
+
+Product quantity must NOT be changed casually from the normal product edit form after the product is created.
+
+After initial setup, inventory quantity changes should happen through controlled inventory operations such as:
+
+* Stock In
+* Stock Out
+* Controlled adjustment if implemented
+
+This is necessary so transaction history remains consistent.
+
+For example, do NOT allow a staff member to edit:
+
+Quantity: 100
+
+directly into:
+
+Quantity: 500
+
+without creating a corresponding inventory transaction.
+
+---
+
+# 35. Data Integrity
+
+The following relationship must always remain true:
+
+Product.current_quantity = result of valid inventory movements
+
+For every stock transaction:
+
+quantity_after must correctly correspond to quantity_before and transaction quantity.
+
+For IN:
+
+quantity_after = quantity_before + quantity
+
+For OUT:
+
+quantity_after = quantity_before - quantity
+
+Never allow:
+
+quantity_after < 0
+
+---
+
+# 36. Error Pages
+
+Create clean custom pages for:
+
+* 403 Permission Denied
+* 404 Not Found
+* 500 Server Error
+
+Use the same visual style as the application.
+
+---
+
+# 37. Login Page
+
+Create a polished login page.
+
+Requirements:
+
+* Inventory Management branding
+* Username/email field as supported by the selected authentication configuration
+* Password field
+* Remember-me option if supported safely
+* Forgot password
+* Login button
+* Validation messages
+* Responsive layout
+
+Do not display the normal Django Admin login page to application users.
+
+---
+
+# 38. Dashboard Design Direction
+
+Aim for a professional inventory dashboard similar to modern SaaS/admin applications.
+
+Use:
+
+* Light theme
+* Clean white cards
+* Subtle borders/shadows
+* Consistent spacing
+* Clear typography
+* Simple icons
+* Responsive sidebar
+* Professional tables
+* Status badges
+* Minimal unnecessary decoration
+
+Avoid:
+
+* Excessive gradients
+* Excessive animation
+* Huge headings
+* Neon colors
+* Clutter
+* Unnecessary UI elements
+
+Prioritize readability and usability.
+
+---
+
+# 39. Implementation Order
+
+Implement the project in a logical order.
+
+Recommended sequence:
+
+1. Inspect existing workspace and `requirements.txt`
+2. Create Django project
+3. Configure environment variables
+4. Configure PostgreSQL
+5. Create accounts system
+6. Create authentication
+7. Create roles and permissions
+8. Create Category model
+9. Create Supplier model
+10. Create Product model
+11. Create StockTransaction model
+12. Implement stock service layer
+13. Implement CRUD
+14. Implement stock-in/out
+15. Implement transaction history
+16. Implement dashboard
+17. Implement reports
+18. Implement audit logging
+19. Build Tabler/Bootstrap templates
+20. Add filters/search/pagination
+21. Add validation
+22. Add tests
+23. Add seed command
+24. Create README
+25. Run checks/tests and fix problems
+
+Do not skip core functionality just to finish faster.
+
+---
+
+# 40. Codex Working Instructions
+
+You are working inside my current VS Code workspace.
+
+First inspect the files that already exist.
+
+Do not overwrite useful existing work unnecessarily.
+
+If `requirements.txt` already exists, inspect it before changing it.
+
+Build the project directly in the current workspace.
+
+You may create directories and files required for the application.
+
+When implementing a major part:
+
+1. Create the necessary code.
+2. Check imports.
+3. Check Django configuration.
+4. Check URLs.
+5. Check templates.
+6. Check model relationships.
+7. Check migrations.
+8. Run relevant Django checks/tests where the environment allows it.
+9. Fix errors before moving on.
+
+Do not leave core features as pseudocode or TODO comments.
+
+---
+
+# 41. Expected Final Result
+
+At completion, I should have a runnable Django Inventory Management System with:
+
+* PostgreSQL
+* Authentication
+* Role-based authorization
+* User management
+* Profile management
+* Dashboard
+* Product CRUD
+* Category CRUD
+* Supplier CRUD
+* Stock In
+* Stock Out
+* Transaction history
+* Low-stock detection
+* Out-of-stock detection
+* Reports
+* Inventory value calculations
+* Audit logs
+* Search
+* Filters
+* Sorting
+* Pagination
+* Responsive Tabler/Bootstrap UI
+* Validation
+* Security protections
+* Tests
+* Seed data
+* README
+
+The application must be functional, not merely a UI prototype.
+
+All CRUD forms must actually save to PostgreSQL.
+
+Authentication and permissions must actually work.
+
+Stock In and Stock Out must actually update inventory and create transaction records.
+
+Dashboard values must come from real database queries.
+
+Reports must use real database data.
+
+---
+
+# 42. Before Finishing
+
+Before considering the project complete:
+
+* Run Django system checks.
+* Run migrations.
+* Run automated tests.
+* Check for broken imports.
+* Check URL names.
+* Check template references.
+* Check static files.
+* Verify PostgreSQL configuration.
+* Verify login/logout.
+* Verify permissions.
+* Verify Product CRUD.
+* Verify Category CRUD.
+* Verify Supplier CRUD.
+* Verify Stock In.
+* Verify Stock Out.
+* Verify insufficient-stock validation.
+* Verify transaction history.
+* Verify dashboard calculations.
+* Verify low-stock logic.
+* Verify inventory value calculations.
+
+Fix discovered errors instead of merely documenting them.
+
+Finally, provide a concise summary containing:
+
+1. What was created
+2. Important project directories
+3. Database setup required
+4. Commands I need to run
+5. Demo accounts if seed data created them
+6. How to start the application
+7. Any remaining configuration that genuinely requires my input
+
+Now inspect the current workspace and begin implementing the project.

@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}{% include 'components/heading.html' %}<div class="card form-panel"><div class="card-body"><p>{{ description }}</p><form method="post">{% csrf_token %}<button class="btn btn-danger">Confirm archive</button><a class="btn" href="{% url cancel_url %}">Cancel</a></form></div></div>{% endblock %}

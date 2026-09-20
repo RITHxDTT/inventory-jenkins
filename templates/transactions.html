@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}{% include 'components/heading.html' %}{% include 'components/filters.html' %}<div class="card">{% include 'components/transaction_table.html' with rows=page_obj %}{% include 'components/pagination.html' %}</div>{% endblock %}

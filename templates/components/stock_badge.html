@@ -1,0 +1,1 @@
+<span class="badge {% if product.current_quantity == 0 %}bg-red-lt{% elif product.current_quantity <= product.minimum_stock_level %}bg-yellow-lt{% else %}bg-green-lt{% endif %}">{{ product.stock_status }}</span>

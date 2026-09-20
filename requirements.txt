@@ -1,0 +1,31 @@
+
+# Django Framework
+Django>=5.2,<6.0
+
+# PostgreSQL Database Driver
+psycopg[binary]>=3.2,<4.0
+
+# Environment Variables
+django-environ>=0.12,<1.0
+
+# Image Processing
+# Used for Product images and User profile pictures
+Pillow>=11.0,<13.0
+
+# Filtering
+# Used for filtering products, suppliers, transactions, etc.
+django-filter>=25.0,<26.0
+
+# Static Files
+# Useful when deploying Django to production
+whitenoise>=6.9,<7.0
+
+# Authentication / Account Management
+django-allauth>=65.0,<66.0
+
+# Testing
+pytest>=8.0,<10.0
+pytest-django>=4.10,<5.0
+
+# Production WSGI Server
+gunicorn>=23.0,<24.0
