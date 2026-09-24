@@ -1417,3 +1417,14 @@ Finally, provide a concise summary containing:
 7. Any remaining configuration that genuinely requires my input
 
 Now inspect the current workspace and begin implementing the project.
+
+
+docker exec -it inventory_postgres psql -U postgres -d inventory_db
+
+qwertyui123 // admin
+staff123 // staff
+
+Option + Command + L
+
+createsueruser
+changepassword
